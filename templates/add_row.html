@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Row</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='add_row.css') }}">
+</head>
+<body>
+    <h1>Add Row</h1>
+    
+    <h2>Deployment Team</h2>
+    <form action="/submit_row" method="post" id="add-row-form">
+        <input type="hidden" name="role" value="{{ role }}">
+        <div class="row">
+            <!-- Display first 10 columns for editing in a grid -->
+            {% for column in columns[:15] %}
+                {% if column != 'Actions' %}
+                    <div>
+                        <label for="{{ column }}">{{ column }}</label>
+                        {% if column == 'Unique Ref' %}
+                            <input type="text" id="{{ column }}" name="{{ column }}" value="{{ next_sno }}" readonly>
+                        {% else %}
+                            <input type="text" id="{{ column }}" name="{{ column }}">
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        <hr>
+
+        <h2>GIS Team</h2>
+        <div class="row">
+            <!-- Display remaining columns for editing in a grid -->
+            {% for column in columns[15:] %}
+                {% if column != 'Actions' %}
+                    <div>
+                        <label for="{{ column }}">{{ column }}</label>
+                        <!-- {% if column == 'Unique Ref' %}
+                            <input type="text" id="{{ column }}" name="{{ column }}" value="{{ next_sno }}" readonly>
+                        {% else %} -->
+                            <input type="text" id="{{ column }}" name="{{ column }}" readonly>
+                        <!-- {% endif %} -->
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        <br>
+        <button type="submit" class="submit-btn">Submit</button>
+    </form>
+
+    <script>
+
+        function disableFields() {
+            var inputs = document.querySelectorAll('#add-row-form input');
+            inputs.forEach(function(input) {
+                input.disabled = true;
+            });
+        }
+        // Add event listener to the form submit event
+        document.getElementById('add-row-form').addEventListener('submit', function(event) {
+            // Prevent the default form submission behavior
+            event.preventDefault();
+
+            // Disable fields
+            // disableFields()
+            
+            // Submit the form data asynchronously
+            fetch('/submit_row', {
+                method: 'POST',
+                body: new FormData(this)
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log("Role: ","{{role}}");
+                    // Redirect back to index route after successful submission
+                    window.location.href = '/index?role={{ role }}';
+                    // Reload the page
+                    // window.location.reload();
+                } else {
+                    throw new Error('Failed to submit form');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        // Fetch the next serial number from the server
+        fetch('/get_next_sno')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('Unique Ref').value = data.next_sno;
+            })
+            .catch(error => {
+                console.error('Error fetching next serial number:', error);
+            });
+    </script>
+</body>
+</html>

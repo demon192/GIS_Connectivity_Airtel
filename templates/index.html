@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel Data</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+</head>
+
+<body>
+
+    <div class="heading">
+        <h1>Welcome, {{ role }} : {{name}}</h1>
+        <a href="/logout" class="logout-btn">Logout</a>
+    </div>
+    <!-- <p>OLM Id :{{olmId}} with Name :{{name}}</p> -->
+
+    <!-- Flash messages container -->
+
+    <div id="flashMessages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Logout button -->
+
+    <nav>
+        <div>
+            <button class="menu-btn" onclick="toggleMenu()">Menu &#9776;</button>
+            <div class="menu-content" id="menuContent">
+                <a href="/add_row" class="add-btn btn-feature">Add Row</a>
+                <a href="/download_pending_report" class="download-btn btn-feature">Download Pending Report</a>
+                <a href="/download_report" class="download-btn btn-feature">Download Report</a>
+                <a href="/add_bulk" class="bulk-add-btn btn-feature">Add Bulk Rows</a>
+                <a href="/pending_tasks" class="btn-feature">Pending Tasks</a>
+            </div>
+        </div>
+        <input type="text" id="searchInput" onkeyup="filterRows()" placeholder="Search..." class="search-bar">
+    </nav>
+    <div class="table-container">
+
+        <table>
+            {{ html_table | safe }}
+        </table>
+    </div>
+
+
+    <button class="scroll-to-top" onclick="scrollToTop()"></button>
+
+    <script>
+
+        // Function to handle edit button click
+        function editRow(rowIdx) {
+            // alert('Edit row ' + rowIdx);
+            var confirmDelete = confirm("Are you sure you want to edit this row?");
+            window.location.href = '/edit_row/' + rowIdx;        
+        }
+
+        // Function to handle delete button click
+        function deleteRow(rowIdx) {
+            // alert('Deletee row ' + rowIdx);
+            var confirmDelete = confirm("Are you sure you want to delete this row?");
+            if (confirmDelete) {
+                fetch('/delete_row', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ index: rowIdx })  // Ensure 'index' parameter is correctly passed
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload(); // Reload the page after deletion
+                    } else {
+                        console.error('Error deleting row:', response.statusText);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting row:', error);
+                });
+            }
+        }
+
+        // Function to submit the row 
+        function submitChanges(rowIdx) {
+            var confirmSubmit = confirm("Are you sure you want to submit the changes?");
+            if (confirmSubmit) {
+                fetch(`/submit_changes/${rowIdx}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ index: rowIdx })  // Ensure 'index' parameter is correctly passed
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload(); // Reload the page after deletion
+                    } else {
+                        console.error('Error submitting row:', response.statusText);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error submitting row:', error);
+                });
+            }
+        }
+        
+        // Function to close menu when clicking outside of it
+        document.addEventListener('click', function(event) {
+            var menuContent = document.getElementById("menuContent");
+            console.log(menuContent);
+            var menuBtn = document.querySelector('.menu-btn');
+            var target = event.target;
+            if (menuBtn.contains(target)) {
+                // Toggle menu if the button is clicked
+                toggleMenu();
+            } else if (!menuContent.contains(target)) {
+                // Close menu if clicked outside of it
+                menuContent.style.display = "none";
+            }
+            event.stopPropagation(); // Stop event propagation
+        });
+
+        // Function to toggle menu
+        function toggleMenu() {
+            var menuContent = document.getElementById("menuContent");
+            // console.log(menuContent);
+            menuContent.style.display = menuContent.style.display === "block" ? "none" : "block";
+            if(menuContent.style.display=='block'){
+                // Function to close menu when clicking outside of it
+                document.addEventListener('click', function(event) {
+                    var menuContent = document.getElementById("menuContent");
+                    // console.log(menuContent);
+                    var menuBtn = document.querySelector('.menu-btn');
+                    var target = event.target;
+                    if (menuBtn.contains(target)) {
+                        // Toggle menu if the button is clicked
+                        toggleMenu();
+                    } else if (!menuContent.contains(target)) {
+                        // Close menu if clicked outside of it
+                        menuContent.style.display = "none";
+                    }
+                    event.stopPropagation(); // Stop event propagation
+                });
+            }
+        }
+
+        window.onscroll = function () { scrollFunction() };
+
+        function scrollFunction() {
+            if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+                document.querySelector('.scroll-to-top').style.display = 'block';
+            } else {
+                document.querySelector('.scroll-to-top').style.display = 'none';
+            }
+        }
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function filterRows() {
+            var query = document.getElementById('searchInput').value.toLowerCase();
+            var rows = document.querySelectorAll('table tr');
+            for (var i = 1; i < rows.length; i++) {
+                var row = rows[i];
+                var cells = row.getElementsByTagName('td');
+                var visible = false;
+                for (var j = 0; j < cells.length; j++) {
+                    if (cells[j].innerText.toLowerCase().includes(query)) {
+                        visible = true;
+                        break;
+                    }
+                }
+                row.style.display = visible ? '' : 'none';
+            }
+        }
+
+        function addColumnSizeClasses() {
+            var rows = document.querySelectorAll('table tr');
+            smallColumns = [0, 1, 2, 3, 4, 9, 11, 21, 25, 26, 30]
+            mediumColumns = [5, 6, 7, 10, 13, 14, 15, 17, 18, 23, 24, 28, 29]
+            rows.forEach(function (row) {
+                var cells = row.querySelectorAll('th, td');
+                cells.forEach(function (cell, index) {
+                    if (smallColumns.includes(index)) {
+                        cell.classList.add('col-small');
+                    } else if (mediumColumns.includes(index)) {
+                        cell.classList.add('col-medium');
+                    } else {
+                        cell.classList.add('col-large');
+                    }
+                });
+            });
+        }
+
+        addColumnSizeClasses();
+
+        // Function to display flash messages as alerts
+        function displayFlashMessages() {
+            // Retrieve flashed messages from the page
+            var flashMessages = document.getElementById("flashMessages").innerText.trim();
+            if (flashMessages !== "") {
+                // Split the flashed messages into an array
+                var messagesArray = flashMessages.split("\n");
+                // Display each message as an alert
+                messagesArray.forEach(function (message) {
+                    alert(message);
+                });
+            }
+        }
+
+        // Call the function to display flash messages when the page loads
+        window.onload = displayFlashMessages;
+
+    </script>
+</body>
+
+</html>

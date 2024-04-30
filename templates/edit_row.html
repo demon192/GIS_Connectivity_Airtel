@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Row</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='edit_row.css') }}">
+    
+</head>
+<body>
+    <h1>Edit Row</h1>
+
+    <h2>Deployment Team</h2>
+    <form method="POST" action="{{ url_for('submit_edit', index=index) }}">
+        <div class="row">
+            <!-- Display first 10 columns for editing in a grid -->
+            {% for column, value in row_data.items() %}
+                    {% if loop.index <= 15 %}
+                        {% if role == 'GISAdmin' or role == 'GISUser' %}
+                            <div>
+                                <label for="{{ column }}">{{ column }}</label>
+                                {% if column == 'Unique Ref' %}
+                                    <input type="text" name="{{ column }}" value="{{ value }}" readonly>
+                                {% else %}
+                                    <input type="text" name="{{ column }}" value="{{ value }}" readonly>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                        <div>
+                            <label for="{{ column }}">{{ column }}</label>
+                            {% if column == 'Unique Ref'  or column == 'Recived Date' or column == 'Recived From'%}
+                                <input type="text" name="{{ column }}" value="{{ value }}" readonly>
+                            {% else %}
+                                <input type="text" name="{{ column }}" value="{{ value }}">
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                    {% endif %}
+                
+            {% endfor %}
+        </div>
+        <hr>
+        <h2>GIS Team</h2>
+        <div class="row">
+            <!-- Display remaining columns for editing in a grid -->
+            {% for column, value in row_data.items() %}
+                    {% if loop.index > 15 %}
+                        {% if role == 'DeploymentAdmin' %}
+                            <div>
+                                {% if column == 'Actions' %}
+                                    <label for="{{ column }}" style="display: none;">{{ column }}</label>
+                                    <input type="text" name="{{ column }}" value="{{ value }}" class="hidden">
+                                {% elif column == 'Final Status' %}
+                                    <label for="{{ column }}">{{ column }}</label>
+                                    <input type="text" name="{{ column }}" value="{{ value }}" readonly>
+                                {% else %}
+                                    <label for="{{ column }}">{{ column }}</label>
+                                    <input type="text" name="{{ column }}" value="{{ value }}" readonly>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div>
+                                {% if column == 'Actions' %}
+                                    <label for="{{ column }}" style="display: none;">{{ column }}</label>
+                                    <input type="text" name="{{ column }}" value="{{ value }}" class="hidden">
+                                {% elif column == 'Final Status' or column == 'Responsibility' or column == 'Validation Date' %}
+                                    <label for="{{ column }}">{{ column }}</label>
+                                    <input type="text" name="{{ column }}" value="{{ value }}" readonly>
+                                    {% elif column == 'Status' %}
+                                    <label for="{{ column }}">{{ column }}</label>
+                                    <select name="{{ column }}">
+                                        <option value="Route Not Available in ICW" {% if value == 'Route Not Available in ICW' %} selected {% endif %}>Route Not Available in ICW</option>
+                                        <option value="Not Feasible" {% if value == 'Not Feasible' %} selected {% endif %}>Not Feasible</option>
+                                        <option value="Site Already Fiberised" {% if value == 'Site Already Fiberised' %} selected {% endif %}>Site Already Fiberised</option>
+                                        <option value="Intracity" {% if value == 'Intracity' %} selected {% endif %}>Intracity</option>
+                                        <option value="WIP" {% if value == 'WIP' %} selected {% endif %}>WIP</option>
+                                        <option value="WIP" {% if value == 'Other' %} selected {% endif %}>Other</option>
+                                    </select>
+                                {% else %}
+                                    <label for="{{ column }}">{{ column }}</label>
+                                    <input type="text" name="{{ column }}" value="{{ value }}">
+                                {% endif %}
+                            </div>
+                        {% endif %}                 
+                {% endif %}
+            {% endfor %}
+        </div>
+        <br>
+        <button type="submit" class="submit-btn">Submit</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        .login-container{
+            height: 100vh;
+            align-content: center;
+            margin: auto;
+        }
+
+        h1{
+            text-align: center;
+        }
+        
+        /* Style for the login form */
+        .login-form {
+            width: 300px;
+            margin: 0 auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); /* Box shadow */
+        }
+
+        /* Style for input fields */
+        input[type="text"],
+        input[type="password"],
+        select 
+        {
+            width: 250px;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        /* Style for login button */
+        .login-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #474747;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+
+        .login-btn:hover {
+            background-color: #000;
+        }
+    </style>
+</head>
+<body>
+    <!-- Flash messages container -->
+    <div id="flashMessages" style="display: none;">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    {{ message }}
+                    {% if not loop.last %}\n{% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+    <div class="login-container">
+        <h1>Login</h1>
+        <form action="/login" method="post" class="login-form">
+            <label for="olmId">OLM Id</label>
+            <input type="text" name="olmId" id="olmId">
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password">
+            <label for="role">Select your role:</label>
+            <select id="role" name="role">
+                <option value="SuperAdmin">SuperAdmin</option>
+                <option value="DeploymentAdmin">Deployment Admin</option>
+                <option value="GISAdmin">GIS Admin</option>
+                <option value="DeploymentUser">Deployment User</option>
+                <option value="GISUser">GIS User</option>
+            </select>
+            <button type="submit" class="login-btn">Login</button>
+        </form>
+    </div>
+
+    <script>
+        // Function to display flash messages as alerts
+        function displayFlashMessages() {
+            // Retrieve flashed messages from the page
+            var flashMessages = document.getElementById("flashMessages").innerText.trim();
+            
+            if (flashMessages !== "") {
+                // alert(message)
+                // Split the flashed messages into an array
+                var messagesArray = flashMessages.split("\n");
+                // Display each message as an alert
+                messagesArray.forEach(function (message) {
+                    alert(message);
+                });
+            }
+        }
+
+        // Call the function to display flash messages when the page loads
+        window.onload = displayFlashMessages;
+    </script>
+</body>
+</html>
